@@ -68,6 +68,7 @@ function jobCard(j) {
 
 // ── Listings ───────────────────────────────────────────────
 app.get("/", async (req, res) => {
+  try {
   const q = (req.query.q || "").trim();
   const field = (req.query.field || "").trim();
   const filter = {};
@@ -100,6 +101,10 @@ app.get("/", async (req, res) => {
     desc: "Free board of fresher jobs and internships aggregated from public company career pages. Build a resume tailored to any job in 30 seconds.",
     body,
   }));
+  } catch (e) {
+    console.error("listing error:", e.message);
+    res.status(503).send(layout({ title: "FresherJobs", body: '<section class="hero"><h1>Just a moment…</h1><p>We\'re loading jobs. If this persists, the database may still be connecting — please refresh shortly.</p></section>' }));
+  }
 });
 
 // ── Job detail ─────────────────────────────────────────────
@@ -152,14 +157,23 @@ app.get("/api/jobs", async (req, res) => {
 
 app.get("/health", (_, res) => res.json({ status: "ok", time: new Date().toISOString() }));
 
-// ── Boot: connect, serve, schedule scraping ────────────────
-(async () => {
-  await connectDB(process.env.MONGO_URI);
-  app.listen(PORT, () => console.log(`✅ FresherJobs board running on port ${PORT}`));
+// ── Boot: serve first, then connect + schedule scraping ────
+// Start listening immediately so the host detects the open port and the service
+// stays up even if MongoDB is briefly unreachable. A DB failure is then logged
+// clearly instead of crashing the whole process (Exited with status 1).
+app.listen(PORT, () => console.log(`✅ FresherJobs board running on port ${PORT}`));
 
-  const expr = process.env.SCRAPE_CRON || "0 */3 * * *";
-  cron.schedule(expr, () => runScrape().catch((e) => console.error("scrape error:", e.message)));
+connectDB(process.env.MONGO_URI)
+  .then(() => {
+    const expr = process.env.SCRAPE_CRON || "0 */3 * * *";
+    cron.schedule(expr, () => runScrape().catch((e) => console.error("scrape error:", e.message)));
+    // Kick one scrape shortly after boot so a fresh deploy isn't empty.
+    runScrape().catch((e) => console.error("initial scrape failed:", e.message));
+  })
+  .catch((e) => {
+    console.error("❌ MongoDB connection failed:", e.message);
+    console.error("   Check: MONGO_URI env var is set, password is URL-encoded, and Atlas Network Access allows 0.0.0.0/0.");
+  });
 
-  // Kick one scrape shortly after boot so a fresh deploy isn't empty.
-  runScrape().catch((e) => console.error("initial scrape failed:", e.message));
-})();
+// Surface any other unexpected crash reason in the logs instead of dying silently.
+process.on("unhandledRejection", (e) => console.error("unhandledRejection:", e?.message || e));
