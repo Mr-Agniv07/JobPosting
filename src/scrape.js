@@ -3,6 +3,7 @@ const { Job, connectDB } = require("./db");
 const { fetchGreenhouse } = require("./sources/greenhouse");
 const { fetchLever } = require("./sources/lever");
 const { fetchAshby } = require("./sources/ashby");
+const { fetchAdzuna } = require("./sources/adzuna");
 
 function tokens(envVar, fallback) {
   return (process.env[envVar] || fallback)
@@ -52,6 +53,22 @@ async function runScrape() {
         console.warn(`  ${label}/${token}: failed — ${e.message}`);
       }
     }
+  }
+
+  // Adzuna aggregator — one call, internally runs several searches. Skips
+  // silently if ADZUNA_APP_ID/KEY aren't set.
+  if (process.env.ADZUNA_APP_ID && process.env.ADZUNA_APP_KEY) {
+    try {
+      const jobs = await fetchAdzuna();
+      const n = await upsertJobs(jobs);
+      seen += jobs.length;
+      added += n;
+      console.log(`  adzuna: ${jobs.length} fresher jobs (${n} new)`);
+    } catch (e) {
+      console.warn(`  adzuna: failed — ${e.message}`);
+    }
+  } else {
+    console.log("  adzuna: skipped (set ADZUNA_APP_ID + ADZUNA_APP_KEY to enable)");
   }
 
   // Prune stale listings not refreshed in 21 days (filled, expired, or from a
