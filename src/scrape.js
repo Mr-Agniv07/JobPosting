@@ -15,8 +15,8 @@ function tokens(envVar, fallback) {
 function sources() {
   return [
     ["greenhouse", fetchGreenhouse, tokens("GREENHOUSE_BOARDS", "groww,phonepe,postman,slice,druva")],
-    ["lever",      fetchLever,      tokens("LEVER_BOARDS", "cred,meesho,zeta,mindtickle,porter,fi")],
-    ["ashby",      fetchAshby,      tokens("ASHBY_BOARDS", "scaler")],
+    ["lever",      fetchLever,      tokens("LEVER_BOARDS", "paytm,cred,meesho,zeta,mindtickle,porter,fi,fampay,hevodata")],
+    ["ashby",      fetchAshby,      tokens("ASHBY_BOARDS", "scaler,atlan")],
   ];
 }
 
