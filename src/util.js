@@ -55,4 +55,24 @@ function mapField(title = "") {
   return "general";
 }
 
-module.exports = { stripHtml, truncate, esc, mapField };
+// Pretty display names for known board tokens (Lever/Ashby give no clean name).
+const COMPANY_NAMES = {
+  cred: "CRED", meesho: "Meesho", zeta: "Zeta", mindtickle: "Mindtickle",
+  porter: "Porter", fi: "Fi Money", epifi: "Fi Money", phonepe: "PhonePe",
+  groww: "Groww", postman: "Postman", slice: "slice", druva: "Druva",
+  scaler: "Scaler", navi: "Navi", razorpay: "Razorpay", swiggy: "Swiggy",
+};
+
+function companyName(token = "") {
+  if (COMPANY_NAMES[token]) return COMPANY_NAMES[token];
+  // Title-case the token as a fallback (e.g. "browserstack" → "Browserstack")
+  return token.charAt(0).toUpperCase() + token.slice(1);
+}
+
+// Does a location string look India-based (or remote, which Indian freshers can take)?
+const INDIA_RE = /\b(india|bangalore|bengaluru|mumbai|delhi|gurgaon|gurugram|noida|hyderabad|chennai|pune|kolkata|ahmedabad|jaipur|chandigarh|kochi|coimbatore|indore|remote)\b/i;
+function looksIndian(location = "") {
+  return INDIA_RE.test(location);
+}
+
+module.exports = { stripHtml, truncate, esc, mapField, companyName, looksIndian };

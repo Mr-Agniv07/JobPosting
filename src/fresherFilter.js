@@ -3,7 +3,7 @@
 // which roles your audience actually wants.
 
 // Strong "this is entry-level" signals.
-const INCLUDE = /\b(fresher|fresh\s*graduate|graduate\s+(trainee|engineer|program)|trainee|intern(ship)?|entry[\s-]?level|junior|jr\.?|campus|early[\s-]?career|new\s*grad|0[\s-]*[–-]?[\s]*[12]\s*years?|associate(?!\s+director))\b/i;
+const INCLUDE = /\b(freshers?|fresh\s*graduate|graduate|trainee|intern(ship)?|entry[\s-]?level|junior|jr\.?|campus|off[\s-]?campus|early[\s-]?career|new\s*grad|walk[\s-]?in|(0|1)\s*(to|[–-])?\s*[12]\s*years?|up\s*to\s*2\s*years?|no\s+(prior\s+)?experience|associate(?!\s+director|\s+vice|\s+principal))\b/i;
 
 // Strong "this is senior" signals — if present in the TITLE, reject outright.
 const EXCLUDE_TITLE = /\b(senior|sr\.?|staff|principal|lead|manager|head|director|\bvp\b|vice\s*president|architect|chief|expert)\b/i;
