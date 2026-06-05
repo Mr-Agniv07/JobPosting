@@ -20,4 +20,13 @@ function isFresher(title = "", description = "") {
   return INCLUDE.test(hay);                         // fresher signals in body → in
 }
 
-module.exports = { isFresher };
+// Softer check: only reject clearly-senior roles. Used for sources whose own
+// search already targets freshers (e.g. Adzuna queries "fresher"/"graduate"),
+// so re-requiring a keyword would wrongly drop valid results.
+function notSenior(title = "", description = "") {
+  if (EXCLUDE_TITLE.test(title)) return false;
+  if (EXCLUDE_EXP.test(`${title}\n${description}`)) return false;
+  return true;
+}
+
+module.exports = { isFresher, notSenior };

@@ -5,20 +5,19 @@
 // key role keywords — enough for ResumeForge's JD tailoring.
 
 const { truncate, mapField } = require("../util");
-const { isFresher } = require("../fresherFilter");
+const { notSenior } = require("../fresherFilter");
 
 const BASE = "https://api.adzuna.com/v1/api/jobs";
 const stripTags = (s = "") => s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
 async function fetchPage(country, what, page, id, key) {
+  // Minimal documented params only — extra ones (max_days_old, sort_by,
+  // content_type) caused HTTP 400 on the live API.
   const p = new URLSearchParams({
     app_id: id,
     app_key: key,
     results_per_page: "50",
     what: what,
-    max_days_old: "30",
-    sort_by: "date",
-    content_type: "application/json",
   });
   const r = await fetch(`${BASE}/${country}/search/${page}?${p.toString()}`);
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -57,7 +56,8 @@ async function fetchAdzuna() {
 
         const title = stripTags(j.title || "");
         const desc = stripTags(j.description || "");
-        if (!isFresher(title, desc)) continue;
+        // Adzuna's search already targets freshers — only drop clearly-senior roles.
+        if (!notSenior(title, desc)) continue;
 
         const location = j.location?.display_name || "";
         out.push({
